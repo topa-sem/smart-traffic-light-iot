@@ -28,7 +28,7 @@ A 4-lane traffic light controller for the ESP32. IR sensors detect waiting cars,
 | 1 | GPIO 4 | GPIO 16 | GPIO 17 | GPIO 15 |
 | 2 | GPIO 18 | GPIO 19 | GPIO 21 | GPIO 22 |
 | 3 | GPIO 26 | GPIO 33 | GPIO 32 | GPIO 35 |
-| 4 | GPIO 23 | GPIO 14 | GPIO 27 | GPIO 13 |
+| 4 | GPIO 12 | GPIO 14 | GPIO 27 | GPIO 13 |
 
 Notes:
 - GPIO 12 is a boot strapping pin and is deliberately **not** used.
