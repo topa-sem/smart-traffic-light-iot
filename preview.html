@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Traffic Command Center</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-2: #243248;
+      --line: #334155;
+      --muted: #94a3b8;
+      --text: #f8fafc;
+      --red: #ef4444;
+      --yellow: #facc15;
+      --green: #22c55e;
+      --cyan: #38bdf8;
+      --shadow: 0 18px 45px rgba(0, 0, 0, .25);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 90% 0%, #172554 0, transparent 35%), var(--bg);
+    }
+
+    button { font: inherit; }
+
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 42px; }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-mark {
+      display: grid;
+      width: 52px;
+      height: 52px;
+      place-items: center;
+      border: 1px solid #475569;
+      border-radius: 16px;
+      background: #111827;
+      box-shadow: 0 0 28px rgba(56, 189, 248, .16);
+    }
+    .brand-mark svg { width: 34px; height: 34px; }
+    h1, h2, p { margin: 0; }
+    h1 { font-size: clamp(1.35rem, 3vw, 2rem); letter-spacing: -.03em; }
+    .subtitle { margin-top: 4px; color: var(--muted); font-size: .9rem; }
+
+    .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; }
+    .btn {
+      cursor: pointer;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 13px;
+      color: var(--text);
+      background: var(--card);
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .btn:hover { transform: translateY(-1px); border-color: #64748b; background: var(--card-2); }
+    .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .btn-danger { border-color: rgba(239, 68, 68, .55); color: #fecaca; }
+    .btn-primary { border-color: rgba(34, 197, 94, .55); color: #bbf7d0; }
+
+    .alert {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 14px 16px;
+      border: 1px solid rgba(250, 204, 21, .5);
+      border-radius: 14px;
+      color: #fef08a;
+      background: rgba(113, 63, 18, .38);
+      box-shadow: 0 0 24px rgba(250, 204, 21, .1);
+    }
+    .alert.visible { display: flex; }
+    .alert-icon { font-size: 1.3rem; }
+    .alert strong { display: block; color: #fde68a; }
+    .alert small { color: #fcd34d; }
+
+    .overview {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .metric { padding: 15px 17px; border: 1px solid var(--line); border-radius: 14px; background: rgba(30, 41, 59, .7); }
+    .metric-label { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; }
+    .metric-value { margin-top: 5px; font-size: 1.4rem; font-weight: 750; }
+
+    .lane-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .lane-card {
+      position: relative;
+      overflow: hidden;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(30, 41, 59, .98), rgba(15, 23, 42, .94));
+      box-shadow: var(--shadow);
+    }
+    .lane-card.active { border-color: rgba(56, 189, 248, .65); }
+    .lane-card.hold { border-color: rgba(34, 197, 94, .7); }
+    .lane-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .lane-name { font-size: 1.1rem; }
+    .lane-id { margin-top: 3px; color: var(--muted); font-size: .78rem; }
+    .status {
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: .67rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    .status-green { color: #bbf7d0; background: rgba(34, 197, 94, .15); }
+    .status-yellow { color: #fef08a; background: rgba(250, 204, 21, .15); }
+    .status-red { color: #fecaca; background: rgba(239, 68, 68, .15); }
+
+    .signal {
+      display: flex;
+      justify-content: center;
+      gap: 11px;
+      margin: 27px 0 23px;
+    }
+    .bulb {
+      width: 22px;
+      height: 22px;
+      border: 3px solid #334155;
+      border-radius: 50%;
+      background: #172033;
+      opacity: .35;
+    }
+    .bulb.red.on { border-color: #f87171; background: var(--red); box-shadow: 0 0 17px rgba(239, 68, 68, .9); opacity: 1; }
+    .bulb.yellow.on { border-color: #fde047; background: var(--yellow); box-shadow: 0 0 17px rgba(250, 204, 21, .9); opacity: 1; }
+    .bulb.green.on { border-color: #86efac; background: var(--green); box-shadow: 0 0 17px rgba(34, 197, 94, .9); opacity: 1; }
+
+    .count-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+    .count-label { color: var(--muted); font-size: .82rem; }
+    .count { font-size: 1.65rem; font-weight: 800; }
+    .count.alerting { color: #facc15; }
+    .lane-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .lane-controls .btn { padding: 9px 7px; font-size: .77rem; }
+    .hold-label { min-height: 18px; margin-top: 12px; color: #86efac; font-size: .74rem; text-align: center; }
+
+    footer { margin-top: 23px; color: var(--muted); font-size: .78rem; text-align: center; }
+    .pulse { animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .55; } }
+
+    @media (max-width: 900px) { .lane-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 22px, 480px); padding-top: 18px; }
+      header { align-items: flex-start; flex-direction: column; }
+      .actions { justify-content: flex-start; }
+      .overview { grid-template-columns: 1fr; }
+      .lane-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="14" y="4" width="20" height="40" rx="8" fill="#334155" stroke="#94A3B8" stroke-width="2"/>
+            <circle cx="24" cy="13" r="4" fill="#EF4444"/>
+            <circle cx="24" cy="24" r="4" fill="#FACC15"/>
+            <circle cx="24" cy="35" r="4" fill="#22C55E"/>
+            <path d="M7 39h7M34 39h7" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Smart Traffic Command Center</h1>
+          <p class="subtitle">Live intersection monitor · browser simulator</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-danger" id="allRedButton">Emergency All-Red</button>
+        <button class="btn btn-primary" id="resumeButton">Resume Normal Cycle</button>
+      </div>
+    </header>
+
+    <section class="alert" id="preemptionAlert" role="status" aria-live="polite">
+      <span class="alert-icon">⚠</span>
+      <div><strong>Preemption requested</strong><small id="alertText">Lane 2 reached 2 vehicles. All-red safety delay active.</small></div>
+    </section>
+
+    <section class="overview" aria-label="Intersection overview">
+      <div class="metric"><div class="metric-label">Controller</div><div class="metric-value" id="controllerState">Normal cycle</div></div>
+      <div class="metric"><div class="metric-label">Active lane</div><div class="metric-value" id="activeLane">Lane 1</div></div>
+      <div class="metric"><div class="metric-label">Cycle timer</div><div class="metric-value" id="cycleTimer">5s</div></div>
+    </section>
+
+    <section class="lane-grid" id="laneGrid" aria-label="Traffic lanes"></section>
+    <footer>Simulator mirrors ESP32 logic: 5s green · 5s yellow · vehicle counting only on red lanes.</footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    const GREEN_MS = 5000;
+    const YELLOW_MS = 5000;
+    const PREEMPTION_DELAY_MS = 2000;
+    const LANE_COUNT = 4;
+    const lanes = Array.from({ length: LANE_COUNT }, (_, index) => ({
+      number: index + 1,
+      state: index === 0 ? "GREEN" : "RED",
+      count: 0,
+      hold: false
+    }));
+
+    let activeLane = 0;
+    let stateStartedAt = Date.now();
+    let stateDuration = GREEN_MS;
+    let controllerMode = "normal";
+    let preemptionLane = null;
+    let preemptionStartedAt = 0;
+    let alertTimeout = null;
+
+    const laneGrid = document.getElementById("laneGrid");
+    const preemptionAlert = document.getElementById("preemptionAlert");
+    const alertText = document.getElementById("alertText");
+    const controllerState = document.getElementById("controllerState");
+    const activeLaneLabel = document.getElementById("activeLane");
+    const cycleTimer = document.getElementById("cycleTimer");
+
+    function render() {
+      laneGrid.innerHTML = lanes.map((lane, index) => {
+        const state = lane.state.toLowerCase();
+        return `
+          <article class="lane-card ${lane.state === "GREEN" ? "active" : ""} ${lane.hold ? "hold" : ""}">
+            <div class="lane-head">
+              <div><h2 class="lane-name">Lane ${lane.number}</h2><div class="lane-id">IR sensor ${String(lane.number).padStart(2, "0")}</div></div>
+              <span class="status status-${state}">${lane.state}</span>
+            </div>
+            <div class="signal" aria-label="${lane.state} light">
+              <span class="bulb red ${lane.state === "RED" ? "on" : ""}"></span>
+              <span class="bulb yellow ${lane.state === "YELLOW" ? "on" : ""}"></span>
+              <span class="bulb green ${lane.state === "GREEN" ? "on" : ""}"></span>
+            </div>
+            <div class="count-row"><span class="count-label">Vehicles waiting</span><strong class="count ${lane.count >= 2 ? "alerting" : ""}">${lane.count}</strong></div>
+            <div class="lane-controls">
+              <button class="btn" data-action="hold" data-lane="${index}">${lane.hold ? "Release Hold" : "Hold Green"}</button>
+              <button class="btn btn-primary" data-action="force" data-lane="${index}">Force Green</button>
+            </div>
+            <div class="hold-label">${lane.hold ? "Green held permanently" : "&nbsp;"}</div>
+          </article>`;
+      }).join("");
+
+      const remaining = Math.max(0, stateDuration - (Date.now() - stateStartedAt));
+      const seconds = Math.ceil(remaining / 1000);
+      controllerState.textContent = controllerMode === "all-red" ? "Emergency all-red" :
+        controllerMode === "preemption" ? "Preemption delay" :
+        lanes.some(lane => lane.hold) ? "Admin override" : "Normal cycle";
+      activeLaneLabel.textContent = preemptionLane !== null ? `Lane ${preemptionLane + 1}` :
+        controllerMode === "all-red" ? "All lanes stopped" : `Lane ${activeLane + 1}`;
+      cycleTimer.textContent = controllerMode === "all-red" ? "—" : `${seconds}s`;
+    }
+
+    function setAllRed() {
+      lanes.forEach(lane => { lane.state = "RED"; });
+      controllerMode = "all-red";
+      preemptionLane = null;
+      preemptionAlert.classList.remove("visible");
+      render();
+    }
+
+    function resumeCycle(startLane = activeLane) {
+      activeLane = startLane;
+      lanes.forEach((lane, index) => {
+        lane.state = index === activeLane ? "GREEN" : "RED";
+        if (index === activeLane) lane.count = 0;
+      });
+      controllerMode = "normal";
+      preemptionLane = null;
+      stateStartedAt = Date.now();
+      stateDuration = GREEN_MS;
+      preemptionAlert.classList.remove("visible");
+      render();
+    }
+
+    function forceGreen(index) {
+      lanes.forEach((lane, laneIndex) => {
+        lane.state = laneIndex === index ? "GREEN" : "RED";
+        lane.hold = false;
+      });
+      lanes[index].count = 0;
+      activeLane = index;
+      controllerMode = "normal";
+      preemptionLane = null;
+      stateStartedAt = Date.now();
+      stateDuration = GREEN_MS;
+      preemptionAlert.classList.remove("visible");
+      render();
+    }
+
+    function toggleHold(index) {
+      const shouldHold = !lanes[index].hold;
+      forceGreen(index);
+      lanes[index].hold = shouldHold;
+      render();
+    }
+
+    function beginPreemption(index) {
+      lanes.forEach(lane => { lane.state = "RED"; });
+      controllerMode = "preemption";
+      preemptionLane = index;
+      preemptionStartedAt = Date.now();
+      alertText.textContent = `Lane ${index + 1} reached 2 vehicles. All-red safety delay active.`;
+      preemptionAlert.classList.add("visible");
+      render();
+    }
+
+    function advanceCycle() {
+      if (controllerMode === "all-red") return;
+      if (controllerMode === "preemption") {
+        if (Date.now() - preemptionStartedAt >= PREEMPTION_DELAY_MS) {
+          const lane = preemptionLane;
+          lanes[lane].state = "GREEN";
+          lanes[lane].count = 0;
+          activeLane = lane;
+          controllerMode = "normal";
+          stateStartedAt = Date.now();
+          stateDuration = GREEN_MS;
+          preemptionAlert.classList.remove("visible");
+          render();
+        }
+        return;
+      }
+
+      if (lanes.some(lane => lane.hold)) return;
+      if (Date.now() - stateStartedAt < stateDuration) return;
+
+      if (lanes[activeLane].state === "GREEN") {
+        lanes[activeLane].state = "YELLOW";
+        stateDuration = YELLOW_MS;
+      } else {
+        lanes[activeLane].state = "RED";
+        activeLane = (activeLane + 1) % LANE_COUNT;
+        lanes[activeLane].state = "GREEN";
+        lanes[activeLane].count = 0;
+        stateDuration = GREEN_MS;
+      }
+      stateStartedAt = Date.now();
+      render();
+    }
+
+    function simulateSensors() {
+      if (controllerMode === "all-red") return;
+      lanes.forEach(lane => {
+        if (lane.state === "RED" && Math.random() < 0.18) lane.count++;
+      });
+      if (controllerMode === "normal") {
+        const waitingLane = lanes.findIndex(lane => lane.state === "RED" && lane.count >= 2);
+        if (waitingLane !== -1) beginPreemption(waitingLane);
+      }
+      render();
+    }
+
+    laneGrid.addEventListener("click", event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const index = Number(button.dataset.lane);
+      if (button.dataset.action === "hold") toggleHold(index);
+      if (button.dataset.action === "force") forceGreen(index);
+    });
+    document.getElementById("allRedButton").addEventListener("click", setAllRed);
+    document.getElementById("resumeButton").addEventListener("click", () => resumeCycle());
+
+    render();
+    setInterval(() => { advanceCycle(); render(); }, 250);
+    setInterval(simulateSensors, 1000);
+  </script>
+</body>
+</html>
