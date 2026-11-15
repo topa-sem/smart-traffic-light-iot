@@ -51,12 +51,34 @@
       border: 1px solid #475569;
       border-radius: 16px;
       background: #111827;
-      box-shadow: 0 0 28px rgba(56, 189, 248, .16);
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, .08), 0 0 28px rgba(56, 189, 248, .2), 0 8px 18px rgba(0, 0, 0, .3);
     }
-    .brand-mark svg { width: 34px; height: 34px; }
+    .brand-mark svg { width: 36px; height: 36px; filter: drop-shadow(0 0 7px rgba(56, 189, 248, .42)); }
     h1, h2, p { margin: 0; }
     h1 { font-size: clamp(1.35rem, 3vw, 2rem); letter-spacing: -.03em; }
-    .subtitle { margin-top: 4px; color: var(--muted); font-size: .9rem; }
+    .subtitle { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-top: 4px; color: var(--muted); font-size: .9rem; }
+    .online-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border: 1px solid rgba(34, 197, 94, .35);
+      border-radius: 999px;
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, .1);
+      font-size: .65rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    .online-pill::before {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 9px var(--green);
+      content: "";
+      animation: online-pulse 1.8s ease-in-out infinite;
+    }
 
     .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; }
     .btn {
@@ -72,6 +94,7 @@
     .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
     .btn-danger { border-color: rgba(239, 68, 68, .55); color: #fecaca; }
     .btn-primary { border-color: rgba(34, 197, 94, .55); color: #bbf7d0; }
+    .btn.on { border-color: rgba(56, 189, 248, .7); color: #bae6fd; background: rgba(14, 116, 144, .25); }
 
     .alert {
       display: none;
@@ -79,26 +102,28 @@
       gap: 12px;
       margin-bottom: 20px;
       padding: 14px 16px;
-      border: 1px solid rgba(250, 204, 21, .5);
+      border: 1px solid rgba(56, 189, 248, .45);
       border-radius: 14px;
-      color: #fef08a;
-      background: rgba(113, 63, 18, .38);
-      box-shadow: 0 0 24px rgba(250, 204, 21, .1);
+      color: #bae6fd;
+      background: rgba(12, 74, 110, .35);
     }
     .alert.visible { display: flex; }
     .alert-icon { font-size: 1.3rem; }
-    .alert strong { display: block; color: #fde68a; }
-    .alert small { color: #fcd34d; }
+    .alert strong { display: block; color: #e0f2fe; }
+    .alert small { color: #7dd3fc; }
 
     .overview {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 12px;
       margin-bottom: 20px;
     }
     .metric { padding: 15px 17px; border: 1px solid var(--line); border-radius: 14px; background: rgba(30, 41, 59, .7); }
     .metric-label { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; }
     .metric-value { margin-top: 5px; font-size: 1.4rem; font-weight: 750; }
+    .metric-value.green { color: #86efac; }
+    .metric-value.yellow { color: #fde047; }
+    .metric-value.red { color: #fca5a5; }
 
     .lane-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .lane-card {
@@ -109,9 +134,12 @@
       border-radius: 18px;
       background: linear-gradient(145deg, rgba(30, 41, 59, .98), rgba(15, 23, 42, .94));
       box-shadow: var(--shadow);
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
     }
-    .lane-card.active { border-color: rgba(56, 189, 248, .65); }
-    .lane-card.hold { border-color: rgba(34, 197, 94, .7); }
+    .lane-card:hover { transform: translateY(-4px); }
+    .lane-card.green-active { border-color: rgba(34, 197, 94, .7); box-shadow: var(--shadow), 0 0 26px rgba(34, 197, 94, .12); }
+    .lane-card.yellow-active { border-color: rgba(250, 204, 21, .72); box-shadow: var(--shadow), 0 0 26px rgba(250, 204, 21, .11); }
+    .lane-card.next-up { border-color: rgba(56, 189, 248, .6); }
     .lane-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
     .lane-name { font-size: 1.1rem; }
     .lane-id { margin-top: 3px; color: var(--muted); font-size: .78rem; }
@@ -126,43 +154,73 @@
     .status-yellow { color: #fef08a; background: rgba(250, 204, 21, .15); }
     .status-red { color: #fecaca; background: rgba(239, 68, 68, .15); }
 
-    .signal {
+    .signal { display: flex; justify-content: center; margin: 22px 0 20px; }
+    .signal-housing {
       display: flex;
-      justify-content: center;
-      gap: 11px;
-      margin: 27px 0 23px;
+      flex-direction: column;
+      gap: 7px;
+      padding: 10px 8px;
+      border: 1px solid #475569;
+      border-radius: 999px;
+      background: linear-gradient(145deg, #0b1220, #263449);
+      box-shadow: inset 3px 4px 8px rgba(255, 255, 255, .05), inset -4px -5px 10px rgba(0, 0, 0, .45), 0 8px 16px rgba(0, 0, 0, .28);
     }
     .bulb {
-      width: 22px;
-      height: 22px;
+      width: 25px;
+      height: 25px;
       border: 3px solid #334155;
       border-radius: 50%;
       background: #172033;
       opacity: .35;
+      transition: all .2s ease;
     }
-    .bulb.red.on { border-color: #f87171; background: var(--red); box-shadow: 0 0 17px rgba(239, 68, 68, .9); opacity: 1; }
-    .bulb.yellow.on { border-color: #fde047; background: var(--yellow); box-shadow: 0 0 17px rgba(250, 204, 21, .9); opacity: 1; }
-    .bulb.green.on { border-color: #86efac; background: var(--green); box-shadow: 0 0 17px rgba(34, 197, 94, .9); opacity: 1; }
+    .bulb.red.on { border-color: #f87171; background: radial-gradient(circle at 35% 30%, #fecaca, var(--red) 42%, #991b1b); box-shadow: 0 0 17px rgba(239, 68, 68, .9); opacity: 1; }
+    .bulb.yellow.on { border-color: #fde047; background: radial-gradient(circle at 35% 30%, #fef9c3, var(--yellow) 42%, #a16207); box-shadow: 0 0 17px rgba(250, 204, 21, .9); opacity: 1; }
+    .bulb.green.on { border-color: #86efac; background: radial-gradient(circle at 35% 30%, #dcfce7, var(--green) 42%, #166534); box-shadow: 0 0 17px rgba(34, 197, 94, .9); opacity: 1; }
 
-    .count-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+    .phase-progress { height: 5px; margin-bottom: 15px; overflow: hidden; border-radius: 999px; background: #0b1220; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .5); }
+    .phase-progress-fill { width: 0; height: 100%; border-radius: inherit; transition: width .1s linear; }
+    .phase-progress-fill.green { background: linear-gradient(90deg, #16a34a, #86efac); box-shadow: 0 0 11px rgba(34, 197, 94, .8); }
+    .phase-progress-fill.yellow { background: linear-gradient(90deg, #ca8a04, #fde047); box-shadow: 0 0 11px rgba(250, 204, 21, .8); }
+    .phase-caption { display: flex; justify-content: space-between; margin: -11px 0 13px; color: var(--muted); font-size: .68rem; }
+
+    .stat-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
     .count-label { color: var(--muted); font-size: .82rem; }
     .count { font-size: 1.65rem; font-weight: 800; }
     .count.alerting { color: #facc15; }
+    .small-stat { color: #cbd5e1; font-size: .9rem; font-weight: 700; }
+    .sensor-line { display: flex; align-items: center; gap: 7px; margin: 10px 0 14px; color: var(--muted); font-size: .74rem; }
+    .sensor-dot { width: 8px; height: 8px; border-radius: 50%; background: #334155; }
+    .sensor-dot.detected { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+
     .lane-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .lane-controls .btn { padding: 9px 7px; font-size: .77rem; }
-    .hold-label { min-height: 18px; margin-top: 12px; color: #86efac; font-size: .74rem; text-align: center; }
+    .btn-car { border-color: rgba(56, 189, 248, .45); color: #bae6fd; background: rgba(14, 116, 144, .12); }
+    .btn-car:hover { border-color: var(--cyan); background: rgba(14, 116, 144, .24); }
+    .lane-note { min-height: 18px; margin-top: 10px; color: #64748b; font-size: .72rem; text-align: center; }
 
-    footer { margin-top: 23px; color: var(--muted); font-size: .78rem; text-align: center; }
-    .pulse { animation: pulse 1.5s ease-in-out infinite; }
-    @keyframes pulse { 50% { opacity: .55; } }
+    .log {
+      margin-top: 20px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(2, 6, 23, .55);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: .78rem;
+    }
+    .log-title { margin-bottom: 8px; color: var(--muted); font-family: inherit; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+    .log-line { padding: 2px 0; color: #cbd5e1; white-space: pre-wrap; }
+    .log-line .t { color: #64748b; }
 
-    @media (max-width: 900px) { .lane-grid { grid-template-columns: repeat(2, 1fr); } }
+    footer { margin-top: 23px; color: var(--muted); font-size: .78rem; text-align: center; line-height: 1.6; }
+    @keyframes online-pulse { 50% { opacity: .4; transform: scale(.75); } }
+
+    @media (max-width: 900px) { .lane-grid, .overview { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 620px) {
       .shell { width: min(100% - 22px, 480px); padding-top: 18px; }
       header { align-items: flex-start; flex-direction: column; }
       .actions { justify-content: flex-start; }
-      .overview { grid-template-columns: 1fr; }
-      .lane-grid { grid-template-columns: 1fr; }
+      .overview, .lane-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -181,205 +239,344 @@
         </div>
         <div>
           <h1>Smart Traffic Command Center</h1>
-          <p class="subtitle">Live intersection monitor · browser simulator</p>
+          <p class="subtitle">Live intersection monitor · browser simulator <span class="online-pill">SYSTEM ONLINE</span></p>
         </div>
       </div>
       <div class="actions">
-        <button class="btn btn-danger" id="allRedButton">Emergency All-Red</button>
-        <button class="btn btn-primary" id="resumeButton">Resume Normal Cycle</button>
+        <button class="btn on" id="autoButton">Auto Traffic: ON</button>
+        <button class="btn btn-danger" id="clearButton">Clear All Cars</button>
       </div>
     </header>
 
-    <section class="alert" id="preemptionAlert" role="status" aria-live="polite">
-      <span class="alert-icon">⚠</span>
-      <div><strong>Preemption requested</strong><small id="alertText">Lane 2 reached 2 vehicles. All-red safety delay active.</small></div>
+    <section class="alert" id="idleAlert" role="status" aria-live="polite">
+      <span class="alert-icon">ⓘ</span>
+      <div><strong>No cars waiting</strong><small>Empty lanes are skipped, so the junction stays ALL RED until a sensor detects a car.</small></div>
     </section>
 
     <section class="overview" aria-label="Intersection overview">
-      <div class="metric"><div class="metric-label">Controller</div><div class="metric-value" id="controllerState">Normal cycle</div></div>
-      <div class="metric"><div class="metric-label">Active lane</div><div class="metric-value" id="activeLane">Lane 1</div></div>
-      <div class="metric"><div class="metric-label">Cycle timer</div><div class="metric-value" id="cycleTimer">5s</div></div>
+      <div class="metric"><div class="metric-label">Phase</div><div class="metric-value" id="phaseLabel">ALL RED</div></div>
+      <div class="metric"><div class="metric-label">Active lane</div><div class="metric-value" id="activeLabel">None</div></div>
+      <div class="metric"><div class="metric-label">Phase timer</div><div class="metric-value" id="timerLabel">2s</div></div>
+      <div class="metric"><div class="metric-label">Next priority</div><div class="metric-value" id="nextLabel">None</div></div>
     </section>
 
     <section class="lane-grid" id="laneGrid" aria-label="Traffic lanes"></section>
-    <footer>Simulator mirrors ESP32 logic: 5s green · 5s yellow · vehicle counting only on red lanes.</footer>
+
+    <section class="log" aria-label="Controller log">
+      <div class="log-title">Controller log (same messages as the ESP32 Serial Monitor)</div>
+      <div id="logLines"></div>
+    </section>
+
+    <footer>
+      Simulator mirrors <b>smart_traffic_light.ino</b>: empty lanes skipped · busiest lane first (score = cars × 1000 + 250 per second waited) ·
+      green 3 s + 1 s per car (max 10 s) · 2 s yellow · 2 s all-red between lanes · 80 ms sensor debounce.
+    </footer>
   </main>
 
   <script>
     "use strict";
 
-    const GREEN_MS = 5000;
-    const YELLOW_MS = 5000;
-    const PREEMPTION_DELAY_MS = 2000;
-    const LANE_COUNT = 4;
-    const lanes = Array.from({ length: LANE_COUNT }, (_, index) => ({
-      number: index + 1,
-      state: index === 0 ? "GREEN" : "RED",
-      count: 0,
-      hold: false
-    }));
+    // ===== Same configuration as smart_traffic_light.ino =====
+    const LANES = 4;
+    const MIN_CARS_FOR_GREEN = 1;
+    const ROTATE_WHEN_EMPTY = false;
+    const MIN_GREEN_MS = 3000;
+    const PER_CAR_MS = 1000;
+    const MAX_GREEN_MS = 10000;
+    const YELLOW_MS = 2000;
+    const ALL_RED_MS = 2000;
+    const DEBOUNCE_MS = 80;
+    const WAIT_SCORE_PER_SEC = 250;
 
-    let activeLane = 0;
-    let stateStartedAt = Date.now();
-    let stateDuration = GREEN_MS;
-    let controllerMode = "normal";
-    let preemptionLane = null;
-    let preemptionStartedAt = 0;
-    let alertTimeout = null;
+    const IR_GPIO = [15, 22, 35, 13];
 
+    // Browser-only settings (sensor simulation)
+    const CAR_PULSE_MS = 400;        // how long a passing car blocks the IR beam
+    const AUTO_ARRIVAL_CHANCE = 0.15; // per lane, per second
+    const TICK_MS = 50;
+
+    // ===== Traffic state =====
+    let phase = "ALL_RED";
+    let currentLane = -1;
+    let nextLane = 0;
+    let phaseStarted = Date.now();
+    let greenDuration = MIN_GREEN_MS;
+
+    const vehicleCount = [0, 0, 0, 0];
+    const waitingSince = [0, 0, 0, 0];
+
+    // Simulated IR sensors: true = car detected (DETECTED_LEVEL)
+    const pulseUntil = [0, 0, 0, 0];
+    const parked = [false, false, false, false];
+    const lastRaw = [false, false, false, false];
+    const stableReading = [false, false, false, false];
+    const rawChangedAt = [0, 0, 0, 0];
+
+    let autoTraffic = true;
+
+    // ===== Helpers (same as the .ino) =====
+    function phaseName() {
+      if (phase === "GREEN") return "GREEN";
+      if (phase === "YELLOW") return "YELLOW";
+      return "ALL RED";
+    }
+
+    function laneHasRightOfWay(lane) {
+      return (phase === "GREEN" || phase === "YELLOW") && lane === currentLane;
+    }
+
+    function waitingCars(lane) {
+      if (laneHasRightOfWay(lane)) return 0;
+      let c = vehicleCount[lane];
+      if (c === 0 && stableReading[lane]) c = 1;
+      return c;
+    }
+
+    function laneLight(lane) {
+      if (laneHasRightOfWay(lane)) return phase === "GREEN" ? "GREEN" : "YELLOW";
+      return "RED";
+    }
+
+    function beginAllRed() {
+      phase = "ALL_RED";
+      phaseStarted = Date.now();
+      log("All lanes RED");
+    }
+
+    function beginGreen(lane) {
+      const cars = waitingCars(lane);
+      greenDuration = Math.min(MIN_GREEN_MS + cars * PER_CAR_MS, MAX_GREEN_MS);
+
+      currentLane = lane;
+      vehicleCount[lane] = 0;
+      waitingSince[lane] = 0;
+
+      phase = "GREEN";
+      phaseStarted = Date.now();
+      nextLane = (lane + 1) % LANES;
+      log(`Lane ${lane + 1} GREEN for ${greenDuration} ms (${cars} cars)`);
+    }
+
+    function beginYellow() {
+      phase = "YELLOW";
+      phaseStarted = Date.now();
+      log(`Lane ${currentLane + 1} YELLOW`);
+    }
+
+    function readSensor(i, now) {
+      return parked[i] || now < pulseUntil[i];
+    }
+
+    function updateSensors() {
+      const now = Date.now();
+      for (let i = 0; i < LANES; i++) {
+        const raw = readSensor(i, now);
+        if (raw !== lastRaw[i]) {
+          lastRaw[i] = raw;
+          rawChangedAt[i] = now;
+        }
+        if (now - rawChangedAt[i] >= DEBOUNCE_MS && stableReading[i] !== lastRaw[i]) {
+          stableReading[i] = lastRaw[i];
+          if (stableReading[i] && !laneHasRightOfWay(i)) {
+            vehicleCount[i]++;
+            log(`Vehicle detected in lane ${i + 1}; count = ${vehicleCount[i]}`);
+          }
+        }
+      }
+      for (let i = 0; i < LANES; i++) {
+        if (waitingCars(i) > 0) {
+          if (waitingSince[i] === 0) waitingSince[i] = now;
+        } else {
+          waitingSince[i] = 0;
+        }
+      }
+    }
+
+    function laneScore(lane) {
+      let score = waitingCars(lane) * 1000;
+      if (waitingSince[lane] !== 0) {
+        score += Math.floor((Date.now() - waitingSince[lane]) / 1000) * WAIT_SCORE_PER_SEC;
+      }
+      return score;
+    }
+
+    function chooseLane() {
+      let best = -1;
+      let bestScore = 0;
+      for (let offset = 0; offset < LANES; offset++) {
+        const lane = (nextLane + offset) % LANES;
+        if (waitingCars(lane) < MIN_CARS_FOR_GREEN) continue;
+        const s = laneScore(lane);
+        if (best < 0 || s > bestScore) {
+          best = lane;
+          bestScore = s;
+        }
+      }
+      if (best >= 0) return best;
+      return ROTATE_WHEN_EMPTY ? nextLane : -1;
+    }
+
+    function loop() {
+      updateSensors();
+      const elapsed = Date.now() - phaseStarted;
+      if (phase === "ALL_RED") {
+        if (elapsed >= ALL_RED_MS) {
+          const lane = chooseLane();
+          if (lane >= 0) beginGreen(lane);
+        }
+      } else if (phase === "GREEN") {
+        if (elapsed >= greenDuration) beginYellow();
+      } else if (phase === "YELLOW") {
+        if (elapsed >= YELLOW_MS) beginAllRed();
+      }
+      render();
+    }
+
+    // ===== Sensor simulation =====
+    function carArrives(i) {
+      if (parked[i]) return;
+      pulseUntil[i] = Date.now() + CAR_PULSE_MS;
+    }
+
+    function autoArrivals() {
+      if (!autoTraffic) return;
+      for (let i = 0; i < LANES; i++) {
+        if (Math.random() < AUTO_ARRIVAL_CHANCE) carArrives(i);
+      }
+    }
+
+    // ===== Log =====
+    const logLines = document.getElementById("logLines");
+    const startTime = Date.now();
+    const logBuffer = [];
+    function log(msg) {
+      const t = ((Date.now() - startTime) / 1000).toFixed(1).padStart(6, " ");
+      logBuffer.unshift(`<div class="log-line"><span class="t">[${t}s]</span> ${msg}</div>`);
+      if (logBuffer.length > 8) logBuffer.pop();
+      logLines.innerHTML = logBuffer.join("");
+    }
+
+    // ===== UI =====
     const laneGrid = document.getElementById("laneGrid");
-    const preemptionAlert = document.getElementById("preemptionAlert");
-    const alertText = document.getElementById("alertText");
-    const controllerState = document.getElementById("controllerState");
-    const activeLaneLabel = document.getElementById("activeLane");
-    const cycleTimer = document.getElementById("cycleTimer");
+    laneGrid.innerHTML = Array.from({ length: LANES }, (_, i) => `
+      <article class="lane-card" id="card${i}">
+        <div class="lane-head">
+          <div><h2 class="lane-name">Lane ${i + 1}</h2><div class="lane-id">IR sensor ${String(i + 1).padStart(2, "0")} · GPIO ${IR_GPIO[i]}</div></div>
+          <span class="status" id="status${i}">RED</span>
+        </div>
+        <div class="signal"><div class="signal-housing">
+          <span class="bulb red" id="r${i}"></span>
+          <span class="bulb yellow" id="y${i}"></span>
+          <span class="bulb green" id="g${i}"></span>
+        </div></div>
+        <div class="phase-progress"><div class="phase-progress-fill" id="fill${i}"></div></div>
+        <div class="phase-caption"><span id="capL${i}">Sensor monitoring</span><span id="capR${i}">Waiting</span></div>
+        <div class="stat-row"><span class="count-label">Vehicles waiting</span><strong class="count" id="count${i}">0</strong></div>
+        <div class="stat-row"><span class="count-label">Waiting time</span><span class="small-stat" id="wait${i}">–</span></div>
+        <div class="stat-row"><span class="count-label">Priority score</span><span class="small-stat" id="score${i}">0</span></div>
+        <div class="sensor-line"><span class="sensor-dot" id="dot${i}"></span><span id="sensorText${i}">IR clear</span></div>
+        <div class="lane-controls">
+          <button class="btn btn-car" data-action="car" data-lane="${i}">+ Car</button>
+          <button class="btn" data-action="park" data-lane="${i}" id="park${i}">Car Stops</button>
+        </div>
+        <div class="lane-note" id="note${i}">&nbsp;</div>
+      </article>`).join("");
+
+    const $ = id => document.getElementById(id);
 
     function render() {
-      laneGrid.innerHTML = lanes.map((lane, index) => {
-        const state = lane.state.toLowerCase();
-        return `
-          <article class="lane-card ${lane.state === "GREEN" ? "active" : ""} ${lane.hold ? "hold" : ""}">
-            <div class="lane-head">
-              <div><h2 class="lane-name">Lane ${lane.number}</h2><div class="lane-id">IR sensor ${String(lane.number).padStart(2, "0")}</div></div>
-              <span class="status status-${state}">${lane.state}</span>
-            </div>
-            <div class="signal" aria-label="${lane.state} light">
-              <span class="bulb red ${lane.state === "RED" ? "on" : ""}"></span>
-              <span class="bulb yellow ${lane.state === "YELLOW" ? "on" : ""}"></span>
-              <span class="bulb green ${lane.state === "GREEN" ? "on" : ""}"></span>
-            </div>
-            <div class="count-row"><span class="count-label">Vehicles waiting</span><strong class="count ${lane.count >= 2 ? "alerting" : ""}">${lane.count}</strong></div>
-            <div class="lane-controls">
-              <button class="btn" data-action="hold" data-lane="${index}">${lane.hold ? "Release Hold" : "Hold Green"}</button>
-              <button class="btn btn-primary" data-action="force" data-lane="${index}">Force Green</button>
-            </div>
-            <div class="hold-label">${lane.hold ? "Green held permanently" : "&nbsp;"}</div>
-          </article>`;
-      }).join("");
+      const now = Date.now();
+      const elapsed = now - phaseStarted;
+      const duration = phase === "GREEN" ? greenDuration : phase === "YELLOW" ? YELLOW_MS : ALL_RED_MS;
+      const remaining = Math.max(0, duration - elapsed);
+      const preview = phase === "ALL_RED" ? chooseLane() : -1;
 
-      const remaining = Math.max(0, stateDuration - (Date.now() - stateStartedAt));
-      const seconds = Math.ceil(remaining / 1000);
-      controllerState.textContent = controllerMode === "all-red" ? "Emergency all-red" :
-        controllerMode === "preemption" ? "Preemption delay" :
-        lanes.some(lane => lane.hold) ? "Admin override" : "Normal cycle";
-      activeLaneLabel.textContent = preemptionLane !== null ? `Lane ${preemptionLane + 1}` :
-        controllerMode === "all-red" ? "All lanes stopped" : `Lane ${activeLane + 1}`;
-      cycleTimer.textContent = controllerMode === "all-red" ? "—" : `${seconds}s`;
-    }
+      const pl = $("phaseLabel");
+      pl.textContent = phaseName();
+      pl.className = "metric-value " + (phase === "GREEN" ? "green" : phase === "YELLOW" ? "yellow" : "red");
+      $("activeLabel").textContent = phase === "ALL_RED" ? "None" : `Lane ${currentLane + 1}`;
+      $("timerLabel").textContent = (phase === "ALL_RED" && elapsed >= ALL_RED_MS) ? "Waiting" : `${Math.ceil(remaining / 1000)}s`;
 
-    function setAllRed() {
-      lanes.forEach(lane => { lane.state = "RED"; });
-      controllerMode = "all-red";
-      preemptionLane = null;
-      preemptionAlert.classList.remove("visible");
-      render();
-    }
+      let best = -1, bestScore = -1;
+      for (let i = 0; i < LANES; i++) {
+        if (laneHasRightOfWay(i) || waitingCars(i) < MIN_CARS_FOR_GREEN) continue;
+        const s = laneScore(i);
+        if (s > bestScore) { best = i; bestScore = s; }
+      }
+      $("nextLabel").textContent = phase === "ALL_RED" ? (preview >= 0 ? `Lane ${preview + 1}` : "None") : (best >= 0 ? `Lane ${best + 1}` : "None");
 
-    function resumeCycle(startLane = activeLane) {
-      activeLane = startLane;
-      lanes.forEach((lane, index) => {
-        lane.state = index === activeLane ? "GREEN" : "RED";
-        if (index === activeLane) lane.count = 0;
-      });
-      controllerMode = "normal";
-      preemptionLane = null;
-      stateStartedAt = Date.now();
-      stateDuration = GREEN_MS;
-      preemptionAlert.classList.remove("visible");
-      render();
-    }
+      const anyWaiting = [0, 1, 2, 3].some(i => waitingCars(i) > 0);
+      $("idleAlert").classList.toggle("visible", phase === "ALL_RED" && elapsed >= ALL_RED_MS && !anyWaiting);
 
-    function forceGreen(index) {
-      lanes.forEach((lane, laneIndex) => {
-        lane.state = laneIndex === index ? "GREEN" : "RED";
-        lane.hold = false;
-      });
-      lanes[index].count = 0;
-      activeLane = index;
-      controllerMode = "normal";
-      preemptionLane = null;
-      stateStartedAt = Date.now();
-      stateDuration = GREEN_MS;
-      preemptionAlert.classList.remove("visible");
-      render();
-    }
+      for (let i = 0; i < LANES; i++) {
+        const light = laneLight(i);
+        const card = $(`card${i}`);
+        card.className = "lane-card" + (light === "GREEN" ? " green-active" : light === "YELLOW" ? " yellow-active" : "") +
+          ((phase !== "ALL_RED" ? best : preview) === i ? " next-up" : "");
+        const st = $(`status${i}`);
+        st.textContent = light;
+        st.className = "status status-" + light.toLowerCase();
+        $(`r${i}`).classList.toggle("on", light === "RED");
+        $(`y${i}`).classList.toggle("on", light === "YELLOW");
+        $(`g${i}`).classList.toggle("on", light === "GREEN");
 
-    function toggleHold(index) {
-      const shouldHold = !lanes[index].hold;
-      forceGreen(index);
-      lanes[index].hold = shouldHold;
-      render();
-    }
-
-    function beginPreemption(index) {
-      lanes.forEach(lane => { lane.state = "RED"; });
-      controllerMode = "preemption";
-      preemptionLane = index;
-      preemptionStartedAt = Date.now();
-      alertText.textContent = `Lane ${index + 1} reached 2 vehicles. All-red safety delay active.`;
-      preemptionAlert.classList.add("visible");
-      render();
-    }
-
-    function advanceCycle() {
-      if (controllerMode === "all-red") return;
-      if (controllerMode === "preemption") {
-        if (Date.now() - preemptionStartedAt >= PREEMPTION_DELAY_MS) {
-          const lane = preemptionLane;
-          lanes[lane].state = "GREEN";
-          lanes[lane].count = 0;
-          activeLane = lane;
-          controllerMode = "normal";
-          stateStartedAt = Date.now();
-          stateDuration = GREEN_MS;
-          preemptionAlert.classList.remove("visible");
-          render();
+        const fill = $(`fill${i}`);
+        if (light === "RED") {
+          fill.style.width = "0%";
+          fill.className = "phase-progress-fill";
+          $(`capL${i}`).textContent = "Sensor monitoring";
+          $(`capR${i}`).textContent = waitingCars(i) > 0 ? "Queued" : "Empty, skipped";
+        } else {
+          fill.style.width = `${Math.min(100, (remaining / duration) * 100)}%`;
+          fill.className = "phase-progress-fill " + light.toLowerCase();
+          $(`capL${i}`).textContent = `${light} phase`;
+          $(`capR${i}`).textContent = `${Math.ceil(remaining / 1000)}s remaining`;
         }
-        return;
-      }
 
-      if (lanes.some(lane => lane.hold)) return;
-      if (Date.now() - stateStartedAt < stateDuration) return;
+        const cars = waitingCars(i);
+        const cnt = $(`count${i}`);
+        cnt.textContent = cars;
+        cnt.className = "count" + (cars >= 2 ? " alerting" : "");
+        $(`wait${i}`).textContent = waitingSince[i] ? `${Math.floor((now - waitingSince[i]) / 1000)}s` : "–";
+        $(`score${i}`).textContent = laneScore(i);
 
-      if (lanes[activeLane].state === "GREEN") {
-        lanes[activeLane].state = "YELLOW";
-        stateDuration = YELLOW_MS;
-      } else {
-        lanes[activeLane].state = "RED";
-        activeLane = (activeLane + 1) % LANE_COUNT;
-        lanes[activeLane].state = "GREEN";
-        lanes[activeLane].count = 0;
-        stateDuration = GREEN_MS;
+        const detected = stableReading[i];
+        $(`dot${i}`).classList.toggle("detected", detected);
+        $(`sensorText${i}`).textContent = detected ? (parked[i] ? "IR blocked (car stopped)" : "IR detecting car") : "IR clear";
+        const pk = $(`park${i}`);
+        pk.textContent = parked[i] ? "Car Leaves" : "Car Stops";
+        pk.classList.toggle("on", parked[i]);
+        $(`note${i}`).textContent = laneHasRightOfWay(i) ? "Cars not counted while lane has right of way" : " ";
       }
-      stateStartedAt = Date.now();
-      render();
-    }
-
-    function simulateSensors() {
-      if (controllerMode === "all-red") return;
-      lanes.forEach(lane => {
-        if (lane.state === "RED" && Math.random() < 0.18) lane.count++;
-      });
-      if (controllerMode === "normal") {
-        const waitingLane = lanes.findIndex(lane => lane.state === "RED" && lane.count >= 2);
-        if (waitingLane !== -1) beginPreemption(waitingLane);
-      }
-      render();
     }
 
     laneGrid.addEventListener("click", event => {
       const button = event.target.closest("button[data-action]");
       if (!button) return;
-      const index = Number(button.dataset.lane);
-      if (button.dataset.action === "hold") toggleHold(index);
-      if (button.dataset.action === "force") forceGreen(index);
+      const i = Number(button.dataset.lane);
+      if (button.dataset.action === "car") carArrives(i);
+      if (button.dataset.action === "park") parked[i] = !parked[i];
     });
-    document.getElementById("allRedButton").addEventListener("click", setAllRed);
-    document.getElementById("resumeButton").addEventListener("click", () => resumeCycle());
 
-    render();
-    setInterval(() => { advanceCycle(); render(); }, 250);
-    setInterval(simulateSensors, 1000);
+    $("autoButton").addEventListener("click", () => {
+      autoTraffic = !autoTraffic;
+      $("autoButton").textContent = `Auto Traffic: ${autoTraffic ? "ON" : "OFF"}`;
+      $("autoButton").classList.toggle("on", autoTraffic);
+    });
+
+    $("clearButton").addEventListener("click", () => {
+      for (let i = 0; i < LANES; i++) {
+        vehicleCount[i] = 0;
+        waitingSince[i] = 0;
+        parked[i] = false;
+        pulseUntil[i] = 0;
+      }
+      log("All counts cleared (simulator only)");
+    });
+
+    log("All lanes RED");
+    setInterval(loop, TICK_MS);
+    setInterval(autoArrivals, 1000);
   </script>
 </body>
 </html>
